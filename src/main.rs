@@ -21,6 +21,13 @@ fn main() -> std::io::Result<()> {
         let src = home_path.join(".config").join(folder);
         if src.exists() { copy_dir_all(&src, config_dst.join(folder))?; }
     }
+
+    let qb_theme_path = home_path.join(".config/qBittorrent/catppuccin-mocha.qbtheme");
+    if qb_theme_path.exists() {
+        let qb_dst = config_dst.join("qBittorrent");
+        fs::create_dir_all(&qb_dst)?;
+        fs::copy(&qb_theme_path, qb_dst.join("catppuccin-mocha.qbtheme"))?;
+    }
     
     for file in vec![".zshrc", ".zprofile"] {
         let src = home_path.join(file);
