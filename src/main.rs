@@ -13,7 +13,7 @@ fn main() -> std::io::Result<()> {
     let home = env::var("HOME").unwrap();
     let home_path = Path::new(&home);
     
-    let configs = vec!["alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "HyperHDR"];
+    let configs = vec!["alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "HyperHDR", "mako"];
     let config_dst = tmp_base.join(".config");
     fs::create_dir_all(&config_dst)?;
 
@@ -38,11 +38,13 @@ fn main() -> std::io::Result<()> {
     let pkgs = String::from_utf8_lossy(&pkg_output.stdout);
     
     let install_script = format!(
-        "git clone {} ~/driftwm-dotfiles\n\
+        "mkdir -p ~/git\n\
+        git clone {} ~/git/driftwm-dotfiles\n\
+        git clone https://github.com/malbiruk/driftwm ~/git/driftwm\n\
         sudo pacman -S --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\n\
-        cp -r ~/driftwm-dotfiles/.config/* ~/.config/\n\
-        cp ~/driftwm-dotfiles/.zshrc ~/.zshrc\n\
-        cp ~/driftwm-dotfiles/.zprofile ~/.zprofile\n\n\
+        cp -r ~/git/driftwm-dotfiles/.config/* ~/.config/\n\
+        cp ~/git/driftwm-dotfiles/.zshrc ~/.zshrc\n\
+        cp ~/git/driftwm-dotfiles/.zprofile ~/.zprofile\n\n\
         chsh -s $(which zsh) $USER\n\
         sudo chsh -s $(which zsh) root\n\n\
         git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/plugins/zsh-autosuggestions\n\
