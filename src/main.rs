@@ -1,7 +1,7 @@
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::env;
 
 fn main() -> std::io::Result<()> {
     let repo_url = "https://github.com/gh0st-8221/driftwm-dotfiles.git";
@@ -42,6 +42,8 @@ fn main() -> std::io::Result<()> {
         git clone {} ~/git/driftwm-dotfiles\n\
         git clone https://github.com/malbiruk/driftwm ~/git/driftwm\n\
         sudo pacman -S --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\n\
+        wget https://github.com/awawa-dev/HyperHDR/releases/download/v22.0.0.0beta2/HyperHDR-22.0.0beta2-1-x86_64.pkg.tar.zst\n\
+        sudo pacman -U --noconfirm ./HyperHDR-22.0.0beta2-1-x86_64.pkg.tar.zst\n\n\
         cp -r ~/git/driftwm-dotfiles/.config/* ~/.config/\n\
         cp ~/git/driftwm-dotfiles/.zshrc ~/.zshrc\n\
         cp ~/git/driftwm-dotfiles/.zprofile ~/.zprofile\n\n\
