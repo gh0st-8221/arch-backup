@@ -13,7 +13,7 @@ fn main() -> std::io::Result<()> {
     let home = env::var("HOME").unwrap();
     let home_path = Path::new(&home);
     
-    let configs = vec!["alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "HyperHDR", "mako"];
+    let configs = vec!["alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "mako"];
     let config_dst = tmp_base.join(".config");
     fs::create_dir_all(&config_dst)?;
 
@@ -41,7 +41,7 @@ fn main() -> std::io::Result<()> {
         "mkdir -p ~/git\n\
         git clone {} ~/git/driftwm-dotfiles\n\
         git clone https://github.com/malbiruk/driftwm ~/git/driftwm\n\
-        sudo pacman -S --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\n\
+        sudo pacman -Syu --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\n\
         cp -r ~/git/driftwm-dotfiles/.config/* ~/.config/\n\
         cp ~/git/driftwm-dotfiles/.zshrc ~/.zshrc\n\
         cp ~/git/driftwm-dotfiles/.zprofile ~/.zprofile\n\n\
