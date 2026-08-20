@@ -41,7 +41,10 @@ fn main() -> std::io::Result<()> {
         "mkdir -p ~/git\n\
         git clone {} ~/git/driftwm-dotfiles\n\
         git clone https://github.com/malbiruk/driftwm ~/git/driftwm\n\
-        sudo pacman -Syu --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\n\
+        sudo pacman -Syu --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\
+        cd ~/git/driftwm\n\
+        make build\n\
+        sudo make install\n\n\
         cp -r ~/git/driftwm-dotfiles/.config/* ~/.config/\n\
         cp ~/git/driftwm-dotfiles/.zshrc ~/.zshrc\n\
         cp ~/git/driftwm-dotfiles/.zprofile ~/.zprofile\n\n\
