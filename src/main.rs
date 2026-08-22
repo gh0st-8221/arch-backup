@@ -13,7 +13,7 @@ fn main() -> std::io::Result<()> {
     let home = env::var("HOME").unwrap();
     let home_path = Path::new(&home);
     
-    let configs = vec!["alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "mako"];
+    let configs = vec!["alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "mako", "bottom"];
     let config_dst = tmp_base.join(".config");
     fs::create_dir_all(&config_dst)?;
 
