@@ -1,25 +1,32 @@
 use std::env;
 use std::fs;
+use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() -> std::io::Result<()> {
     let repo_url = "https://github.com/gh0st-8221/driftwm-dotfiles.git";
     let tmp_base = env::temp_dir().join("driftwm-sync");
-    
-    if tmp_base.exists() { fs::remove_dir_all(&tmp_base)?; }
+
+    if tmp_base.exists() {
+        fs::remove_dir_all(&tmp_base)?;
+    }
     fs::create_dir_all(&tmp_base)?;
 
-    let home = env::var("HOME").unwrap();
+    let home = env::var("HOME").map_err(|_| Error::new(ErrorKind::NotFound, "HOME environment variable not set"))?;
     let home_path = Path::new(&home);
-    
-    let configs = vec!["alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "mako", "bottom"];
+
+    let configs = [
+        "alacritty", "driftwm", "fuzzel", "gtk-4.0", "helix", "ironbar", "mako", "bottom",
+    ];
     let config_dst = tmp_base.join(".config");
     fs::create_dir_all(&config_dst)?;
 
     for folder in configs {
         let src = home_path.join(".config").join(folder);
-        if src.exists() { copy_dir_all(&src, config_dst.join(folder))?; }
+        if src.exists() {
+            copy_dir_all(&src, config_dst.join(folder))?;
+        }
     }
 
     let qb_theme_path = home_path.join(".config/qBittorrent/catppuccin-mocha.qbtheme");
@@ -28,15 +35,19 @@ fn main() -> std::io::Result<()> {
         fs::create_dir_all(&qb_dst)?;
         fs::copy(&qb_theme_path, qb_dst.join("catppuccin-mocha.qbtheme"))?;
     }
-    
-    for file in vec![".zshrc", ".zprofile"] {
+
+    for file in [".zshrc", ".zprofile"] {
         let src = home_path.join(file);
-        if src.exists() { fs::copy(&src, tmp_base.join(file))?; }
+        if src.exists() {
+            fs::copy(&src, tmp_base.join(file))?;
+        }
     }
 
-    let pkg_output = Command::new("pacman").args(["-Qqe"]).output().expect("failed to get packages");
+    let pkg_output = Command::new("pacman")
+        .args(["-Qqen"])
+        .output()?;
     let pkgs = String::from_utf8_lossy(&pkg_output.stdout);
-    
+
     let install_script = format!(
         "mkdir -p ~/git\n\
         git clone {} ~/git/driftwm-dotfiles\n\
@@ -54,10 +65,11 @@ fn main() -> std::io::Result<()> {
         git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh/plugins/zsh-syntax-highlighting\n\n\
         systemctl --user enable --now pipewire.service\n\
         systemctl --user enable --now pipewire-pulse.service\n\
-        systemctl --user enable --now wireplumber.service", 
-        repo_url, pkgs.replace('\n', " ")
+        systemctl --user enable --now wireplumber.service",
+        repo_url,
+        pkgs.replace('\n', " ")
     );
-    
+
     fs::write(tmp_base.join("install.sh"), install_script)?;
 
     run_git(&["init", "-b", "main"], &tmp_base);
