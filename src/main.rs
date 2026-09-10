@@ -43,6 +43,19 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+    let grub_src = Path::new("/etc/default/grub");
+    if grub_src.exists() {
+        let etc_dst = tmp_base.join("etc/default");
+        fs::create_dir_all(&etc_dst)?;
+        fs::copy(grub_src, etc_dst.join("grub"))?;
+    }
+
+    let grub_theme_src = Path::new("/usr/share/grub/themes/catppuccin-mocha-grub-theme");
+    if grub_theme_src.exists() {
+        let theme_dst = tmp_base.join("usr/share/grub/themes/catppuccin-mocha-grub-theme");
+        copy_dir_all(grub_theme_src, theme_dst)?;
+    }
+
     let pkg_output = Command::new("pacman")
         .args(["-Qqen"])
         .output()?;
@@ -51,11 +64,20 @@ fn main() -> std::io::Result<()> {
     let install_script = format!(
         "mkdir -p ~/git\n\
         git clone {} ~/git/driftwm-dotfiles\n\
-        git clone https://github.com/malbiruk/driftwm ~/git/driftwm\n\
-        sudo pacman -Syu --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\
+        git clone https://github.com/malbiruk/driftwm ~/git/driftwm\n\n\
+        sudo pacman -Syu --noconfirm {} libdisplay-info libinput seatd mesa libxkbcommon\n\n\
         cd ~/git/driftwm\n\
         make build\n\
         sudo make install\n\n\
+        if [ -d ~/git/driftwm-dotfiles/usr/share/grub/themes/theme ]; then\n\
+            sudo mkdir -p /usr/share/grub/themes/theme\n\
+            sudo cp -r ~/git/driftwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme/* /usr/share/grub/themes/catppuccin-mocha-grub-theme/\n\
+        fi\n\
+        if [ -f ~/git/driftwm-dotfiles/etc/default/grub ]; then\n\
+            sudo mkdir -p /etc/default\n\
+            sudo cp ~/git/driftwm-dotfiles/etc/default/grub /etc/default/grub\n\
+        fi\n\
+        sudo grub-mkconfig -o /boot/grub/grub.cfg\n\n\
         cp -r ~/git/driftwm-dotfiles/.config/* ~/.config/\n\
         cp ~/git/driftwm-dotfiles/.zshrc ~/.zshrc\n\
         cp ~/git/driftwm-dotfiles/.zprofile ~/.zprofile\n\n\
