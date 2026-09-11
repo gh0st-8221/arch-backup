@@ -63,6 +63,20 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+    let has_etc_grub = Command::new("sudo")
+        .args(["test", "-f", "/etc/default/grub"])
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false);
+
+    if has_etc_grub {
+        let etc_dst = tmp_base.join("etc/default");
+        fs::create_dir_all(&etc_dst)?;
+        Command::new("sudo")
+            .args(["cp", "/etc/default/grub", etc_dst.join("grub").to_str().unwrap()])
+            .status()?;
+    }
+
     let has_grub_cfg = Command::new("sudo")
         .args(["test", "-f", "/boot/grub/grub.cfg"])
         .status()
@@ -88,6 +102,17 @@ fn main() -> std::io::Result<()> {
             .status()?;
     }
 
+    let readme_content = "# DriftWM Dotfiles\n\n\
+        Awesome ArchLinux driftwm ironbar helix rice, heavily styled with Catppuccin Mocha everywhere. To install, run:\n\n\
+        ```bash\n\
+        git clone [https://github.com/gh0st-8221/driftwm-dotfiles](https://github.com/gh0st-8221/driftwm-dotfiles)\n\
+        cd driftwm-dotfiles\n\
+        chmod +x ./install.sh\n\
+        ./install.sh\n\
+        ```\n\n\
+        Package installation won't work on non-Arch distros, and systemd might fail if you use something cooler like OpenRC or runit.\n";
+    fs::write(tmp_base.join("README.md"), readme_content)?;
+
     let user = env::var("USER").unwrap_or_else(|_| "ghost".to_string());
     Command::new("sudo")
         .args(["chown", "-R", &format!("{}:{}", user, user), tmp_base.to_str().unwrap()])
@@ -110,6 +135,11 @@ fn main() -> std::io::Result<()> {
         cd ~/git/driftwm\n\
         make build\n\
         sudo make install\n\n\
+        if [ -f ~/git/driftwm-dotfiles/etc/default/grub ]; then\n\
+            sudo cp /etc/default/grub /etc/default/grub.bak\n\
+            sudo cp ~/git/driftwm-dotfiles/etc/default/grub /etc/default/grub\n\
+        fi\n\n\
+        sudo grub-mkconfig -o /boot/grub/grub.cfg\n\n\
         if [ -f ~/git/driftwm-dotfiles/boot/grub/grub.cfg ]; then\n\
             sudo cp /boot/grub/grub.cfg /boot/grub/grub.cfg.bak\n\
             sudo cp ~/git/driftwm-dotfiles/boot/grub/grub.cfg /boot/grub/grub.cfg\n\
