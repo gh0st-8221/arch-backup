@@ -9,7 +9,9 @@ fn main() -> std::io::Result<()> {
     let tmp_base = env::temp_dir().join("driftwm-sync");
 
     if tmp_base.exists() {
-        fs::remove_dir_all(&tmp_base)?;
+        Command::new("sudo")
+            .args(["rm", "-rf", tmp_base.to_str().unwrap()])
+            .status()?;
     }
     fs::create_dir_all(&tmp_base)?;
 
@@ -25,7 +27,9 @@ fn main() -> std::io::Result<()> {
     for folder in configs {
         let src = home_path.join(".config").join(folder);
         if src.exists() {
-            copy_dir_all(&src, config_dst.join(folder))?;
+            Command::new("sudo")
+                .args(["cp", "-a", src.to_str().unwrap(), config_dst.to_str().unwrap()])
+                .status()?;
         }
     }
 
@@ -33,28 +37,53 @@ fn main() -> std::io::Result<()> {
     if qb_theme_path.exists() {
         let qb_dst = config_dst.join("qBittorrent");
         fs::create_dir_all(&qb_dst)?;
-        fs::copy(&qb_theme_path, qb_dst.join("catppuccin-mocha.qbtheme"))?;
+        Command::new("sudo")
+            .args(["cp", "-a", qb_theme_path.to_str().unwrap(), qb_dst.to_str().unwrap()])
+            .status()?;
     }
 
     for file in [".zshrc", ".zprofile"] {
         let src = home_path.join(file);
         if src.exists() {
-            fs::copy(&src, tmp_base.join(file))?;
+            Command::new("sudo")
+                .args(["cp", "-a", src.to_str().unwrap(), tmp_base.join(file).to_str().unwrap()])
+                .status()?;
         }
     }
 
-    let grub_cfg_src = Path::new("/boot/grub/grub.cfg");
-    if grub_cfg_src.exists() {
+    let has_grub_cfg = Command::new("sudo")
+        .args(["test", "-f", "/boot/grub/grub.cfg"])
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false);
+
+    if has_grub_cfg {
         let grub_dst = tmp_base.join("boot/grub");
         fs::create_dir_all(&grub_dst)?;
-        fs::copy(grub_cfg_src, grub_dst.join("grub.cfg"))?;
+        Command::new("sudo")
+            .args(["cp", "/boot/grub/grub.cfg", grub_dst.join("grub.cfg").to_str().unwrap()])
+            .status()?;
     }
 
     let grub_theme_src = Path::new("/usr/share/grub/themes/catppuccin-mocha-grub-theme");
     if grub_theme_src.exists() {
         let theme_dst = tmp_base.join("usr/share/grub/themes/catppuccin-mocha-grub-theme");
-        copy_dir_all(grub_theme_src, theme_dst)?;
+        if let Some(parent) = theme_dst.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        Command::new("sudo")
+            .args(["cp", "-r", grub_theme_src.to_str().unwrap(), theme_dst.to_str().unwrap()])
+            .status()?;
     }
+
+    let user = env::var("USER").unwrap_or_else(|_| "ghost".to_string());
+    Command::new("sudo")
+        .args(["chown", "-R", &format!("{}:{}", user, user), tmp_base.to_str().unwrap()])
+        .status()?;
+
+    Command::new("chmod")
+        .args(["-R", "u+rw", tmp_base.to_str().unwrap()])
+        .status()?;
 
     let pkg_output = Command::new("pacman")
         .args(["-Qqen"])
@@ -69,13 +98,12 @@ fn main() -> std::io::Result<()> {
         cd ~/git/driftwm\n\
         make build\n\
         sudo make install\n\n\
-        if [ -d ~/git/driftwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme ]; then\n\
-            sudo mkdir -p /usr/share/grub/themes/catppuccin-mocha-grub-theme\n\
-            sudo cp -r ~/git/driftwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme/. /usr/share/grub/themes/catppuccin-mocha-grub-theme/\n\
-        fi\n\
         if [ -f ~/git/driftwm-dotfiles/boot/grub/grub.cfg ]; then\n\
-            sudo mkdir -p /boot/grub\n\
+            sudo cp /boot/grub/grub.cfg /boot/grub/grub.cfg.bak\n\
             sudo cp ~/git/driftwm-dotfiles/boot/grub/grub.cfg /boot/grub/grub.cfg\n\
+        fi\n\n\
+        if [ -d ~/git/driftwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme ]; then\n\
+            sudo cp -r ~/git/driftwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme /usr/share/grub/themes/\n\
         fi\n\n\
         mkdir -p ~/.config\n\
         cp -r ~/git/driftwm-dotfiles/.config/. ~/.config/\n\
@@ -96,27 +124,17 @@ fn main() -> std::io::Result<()> {
 
     run_git(&["init", "-b", "main"], &tmp_base);
     run_git(&["remote", "add", "origin", repo_url], &tmp_base);
-    run_git(&["add", "."], &tmp_base);
+    run_git(&["add", "-A"], &tmp_base);
     run_git(&["commit", "-m", "update from system"], &tmp_base);
     run_git(&["push", "-u", "origin", "main", "--force"], &tmp_base);
 
-    fs::remove_dir_all(&tmp_base)?;
+    Command::new("sudo")
+        .args(["rm", "-rf", tmp_base.to_str().unwrap()])
+        .status()?;
+
     Ok(())
 }
 
 fn run_git(args: &[&str], dir: &PathBuf) {
     Command::new("git").args(args).current_dir(dir).status().ok();
-}
-
-fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> std::io::Result<()> {
-    fs::create_dir_all(&dst)?;
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        if entry.file_type()?.is_dir() {
-            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        } else {
-            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        }
-    }
-    Ok(())
 }
