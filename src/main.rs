@@ -77,20 +77,6 @@ fn main() -> std::io::Result<()> {
             .status()?;
     }
 
-    let has_grub_cfg = Command::new("sudo")
-        .args(["test", "-f", "/boot/grub/grub.cfg"])
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false);
-
-    if has_grub_cfg {
-        let grub_dst = tmp_base.join("boot/grub");
-        fs::create_dir_all(&grub_dst)?;
-        Command::new("sudo")
-            .args(["cp", "/boot/grub/grub.cfg", grub_dst.join("grub.cfg").to_str().unwrap()])
-            .status()?;
-    }
-
     let grub_theme_src = Path::new("/usr/share/grub/themes/catppuccin-mocha-grub-theme");
     if grub_theme_src.exists() {
         let theme_dst = tmp_base.join("usr/share/grub/themes/catppuccin-mocha-grub-theme");
@@ -142,9 +128,6 @@ fn main() -> std::io::Result<()> {
             sudo cp ~/git/driftwm-dotfiles/etc/default/grub /etc/default/grub\n\
         fi\n\n\
         sudo grub-mkconfig -o /boot/grub/grub.cfg\n\n\
-        if [ -f ~/git/driftwm-dotfiles/boot/grub/grub.cfg ]; then\n\
-            sudo cp ~/git/driftwm-dotfiles/boot/grub/grub.cfg /boot/grub/grub.cfg\n\
-        fi\n\n\
         mkdir -p ~/.config\n\
         cp -r ~/git/driftwm-dotfiles/.config/. ~/.config/\n\
         cp ~/git/driftwm-dotfiles/.zshrc ~/.zshrc\n\
