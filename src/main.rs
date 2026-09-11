@@ -105,7 +105,7 @@ fn main() -> std::io::Result<()> {
     let readme_content = "# DriftWM Dotfiles\n\n\
         Awesome ArchLinux driftwm ironbar helix rice, heavily styled with Catppuccin Mocha everywhere. To install, run:\n\n\
         ```bash\n\
-        git clone [https://github.com/gh0st-8221/driftwm-dotfiles](https://github.com/gh0st-8221/driftwm-dotfiles)\n\
+        git clone https://github.com/gh0st-8221/driftwm-dotfiles\n\
         cd driftwm-dotfiles\n\
         chmod +x ./install.sh\n\
         ./install.sh\n\
