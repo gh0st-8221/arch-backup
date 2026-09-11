@@ -42,6 +42,18 @@ fn main() -> std::io::Result<()> {
             .status()?;
     }
 
+    let openrgb_dir = home_path.join(".config/OpenRGB");
+    let openrgb_dst = config_dst.join("OpenRGB");
+    for file_name in ["ghost.orp", "OpenRGB.json"] {
+        let file_path = openrgb_dir.join(file_name);
+        if file_path.exists() {
+            fs::create_dir_all(&openrgb_dst)?;
+            Command::new("sudo")
+                .args(["cp", "-a", file_path.to_str().unwrap(), openrgb_dst.to_str().unwrap()])
+                .status()?;
+        }
+    }
+
     for file in [".zshrc", ".zprofile"] {
         let src = home_path.join(file);
         if src.exists() {
