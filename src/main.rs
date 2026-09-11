@@ -136,12 +136,10 @@ fn main() -> std::io::Result<()> {
         make build\n\
         sudo make install\n\n\
         if [ -f ~/git/driftwm-dotfiles/etc/default/grub ]; then\n\
-            sudo cp /etc/default/grub /etc/default/grub.bak\n\
             sudo cp ~/git/driftwm-dotfiles/etc/default/grub /etc/default/grub\n\
         fi\n\n\
         sudo grub-mkconfig -o /boot/grub/grub.cfg\n\n\
         if [ -f ~/git/driftwm-dotfiles/boot/grub/grub.cfg ]; then\n\
-            sudo cp /boot/grub/grub.cfg /boot/grub/grub.cfg.bak\n\
             sudo cp ~/git/driftwm-dotfiles/boot/grub/grub.cfg /boot/grub/grub.cfg\n\
         fi\n\n\
         if [ -d ~/git/driftwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme ]; then\n\
