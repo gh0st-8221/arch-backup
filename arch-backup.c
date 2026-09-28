@@ -191,7 +191,7 @@ int main() {
         "git clone https://github.com/gh0st-8221/ghostwm ~/git/ghostwm\n"
         "git clone https://aur.archlinux.org/xdg-desktop-portal-termfilechooser-git.git ~/git/xdg-desktop-portal-termfilechooser-git\n"
         "sudo pacman -Syu --noconfirm %s libdisplay-info libinput seatd mesa libxkbcommon\n\n"
-        "cd ~/git/~/git/xdg-desktop-portal-termfilechooser-git\n"
+        "cd ~/git/xdg-desktop-portal-termfilechooser-git\n"
         "makepkg -si\n"
         "cd ~/git/\n"
         "make\n"
