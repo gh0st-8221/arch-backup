@@ -189,6 +189,8 @@ int main() {
         "mkdir -p ~/git\n"
         "git clone %s ~/git/ghostwm-dotfiles\n"
         "git clone https://github.com/gh0st-8221/ghostwm ~/git/ghostwm\n"
+        "sudo wget -O /usr/bin/xscreencopy https://github.com/gh0st-8221/xscreencopy/raw/refs/heads/main/xscreencopy\n"
+        "sudo chmod +x /usr/bin/xscreencopy\n"
         "git clone https://aur.archlinux.org/xdg-desktop-portal-termfilechooser-git.git ~/git/xdg-desktop-portal-termfilechooser-git\n"
         "sudo pacman -Syu --noconfirm %s libdisplay-info libinput seatd mesa libxkbcommon\n\n"
         "cd ~/git/xdg-desktop-portal-termfilechooser-git\n"
