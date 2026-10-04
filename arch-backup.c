@@ -71,7 +71,7 @@ int main() {
     create_dirs(tmp_base);
 
     const char *configs[] = {
-        "alacritty", "ghostwm", "rofi", "gtk-4.0", "helix", "dunst", "bottom", "xdg-desktop-portal-termfilechooser", "yazi"
+        "alacritty", "ghostwm", "rofi", "gtk-4.0", "helix", "dunst", "bottom", "xdg-desktop-portal", "xdg-desktop-portal-termfilechooser",
     };
 
     char config_dst[1024];
