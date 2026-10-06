@@ -188,7 +188,7 @@ int main() {
     snprintf(install_script, sizeof(install_script),
         "mkdir -p ~/git\n"
         "git clone %s ~/git/ghostwm-dotfiles\n"
-        "git clone https://github.com/gh0st-8221/ghostwm ~/git/ghostwm\n"
+        "sudo wget -O /usr/bin/ghostwm https://github.com/gh0st-8221/ghostwm/raw/refs/heads/main/ghostwm && sudo chmod +x /usr/bin/ghostwm\n"
         "sudo wget -O /usr/bin/xscreencopy https://github.com/gh0st-8221/xscreencopy/raw/refs/heads/main/xscreencopy\n"
         "sudo chmod +x /usr/bin/xscreencopy\n"
         "git clone https://aur.archlinux.org/xdg-desktop-portal-termfilechooser-git.git ~/git/xdg-desktop-portal-termfilechooser-git\n"
