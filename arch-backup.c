@@ -71,7 +71,7 @@ int main() {
     create_dirs(tmp_base);
 
     const char *configs[] = {
-        "alacritty", "ghostwm", "rofi", "gtk-4.0", "helix", "dunst", "bottom", "xdg-desktop-portal", "xdg-desktop-portal-termfilechooser",
+        "alacritty", "ghostwm", "rofi", "gtk-4.0", "helix", "dunst", "bottom", "xdg-desktop-portal", "xdg-desktop-portal-termfilechooser", "yazi",
     };
 
     char config_dst[1024];
@@ -153,7 +153,7 @@ int main() {
     snprintf(readme_path, sizeof(readme_path), "%s/README.md", tmp_base);
     FILE *f = fopen(readme_path, "w");
     if (f) {
-        fprintf(f, "# GhostWM Dotfiles\n\nAwesome ArchLinux ghostwm helix rice, heavily styled with Catppuccin Mocha everywhere. To install, run:\n\n```bash\ngit clone https://github.com/gh0st-8221/ghostwm-dotfiles\ncd ghostwm-dotfiles\n./install.sh\n```\n\nPackage installation won't work on non-Arch distros, and systemd might fail if you use something cooler like OpenRC or runit.\n");
+        fprintf(f, "# GhostWM Dotfiles\n\nAwesome ArchLinux ghostwm helix rice, heavily styled with Catppuccin Mocha everywhere. To install, run:\n\n```bash\ngit clone https://github.com/gh0st-8221/arch-dotfiles\ncd arch-dotfiles\n./install.sh\n```\n\nPackage installation won't work on non-Arch distros, and systemd might fail if you use something cooler like OpenRC or runit.\n");
         fclose(f);
     }
 
@@ -172,40 +172,62 @@ int main() {
     char *chmod_args[] = {"chmod", "-R", "u+rw", tmp_base, NULL};
     run_cmd(chmod_args);
 
-    FILE *fp = popen("pacman -Qqen", "r");
-    char pkgs[8192] = "";
-    if (fp) {
+    FILE *fp_native = popen("pacman -Qqen", "r");
+    char pkgs_native[8192] = "";
+    if (fp_native) {
         char buf[256];
-        while (fgets(buf, sizeof(buf), fp)) {
+        while (fgets(buf, sizeof(buf), fp_native)) {
             buf[strcspn(buf, "\n")] = 0;
-            strcat(pkgs, buf);
-            strcat(pkgs, " ");
+            strcat(pkgs_native, buf);
+            strcat(pkgs_native, " ");
         }
-        pclose(fp);
+        pclose(fp_native);
+    }
+
+    FILE *fp_foreign = popen("pacman -Qqem", "r");
+    char pkgs_foreign[8192] = "";
+    if (fp_foreign) {
+        char buf[256];
+        while (fgets(buf, sizeof(buf), fp_foreign)) {
+            buf[strcspn(buf, "\n")] = 0;
+            strcat(pkgs_foreign, buf);
+            strcat(pkgs_foreign, " ");
+        }
+        pclose(fp_foreign);
     }
 
     char install_script[16384];
     snprintf(install_script, sizeof(install_script),
         "mkdir -p ~/git\n"
-        "git clone %s ~/git/ghostwm-dotfiles\n"
+        "git clone %s ~/git/arch-dotfiles\n"
         "sudo wget -O /usr/bin/ghostwm https://github.com/gh0st-8221/ghostwm/raw/refs/heads/main/ghostwm && sudo chmod +x /usr/bin/ghostwm\n"
         "sudo wget -O /usr/bin/xscreencopy https://github.com/gh0st-8221/xscreencopy/raw/refs/heads/main/xscreencopy\n"
         "sudo chmod +x /usr/bin/xscreencopy\n"
         "git clone https://aur.archlinux.org/xdg-desktop-portal-termfilechooser-git.git ~/git/xdg-desktop-portal-termfilechooser-git\n"
-        "sudo pacman -Syu --noconfirm %s libdisplay-info libinput seatd mesa libxkbcommon\n\n"
+        "sudo pacman -Syu --noconfirm %s libdisplay-info libinput seatd mesa libxkbcommon\n"
+        "if ! command -v yay &> /dev/null && ! command -v paru &> /dev/null; then\n"
+        "    sudo pacman -S --noconfirm base-devel git\n"
+        "    git clone https://aur.archlinux.org/yay-bin.git ~/git/yay-bin\n"
+        "    cd ~/git/yay-bin && makepkg -si --noconfirm && cd ~\n"
+        "fi\n"
+        "HELPER=\"yay\"\n"
+        "if command -v paru &> /dev/null; then HELPER=\"paru\"; fi\n"
+        "if [ -n \"%s\" ]; then\n"
+        "    $HELPER -S --noconfirm %s\n"
+        "fi\n"
         "cd ~/git/xdg-desktop-portal-termfilechooser-git\n"
-        "makepkg -si\n"
+        "makepkg -si --noconfirm\n"
         "cd ~/git/\n"
         "make\n"
         "if [ -d ~/git/ghostwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme ]; then\n"
         "    [ -d /usr/share/grub/themes/catppuccin-mocha-grub-theme ] && sudo cp -r /usr/share/grub/themes/catppuccin-mocha-grub-theme /usr/share/grub/themes/catppuccin-mocha-grub-theme.bak\n"
         "    sudo cp -r ~/git/ghostwm-dotfiles/usr/share/grub/themes/catppuccin-mocha-grub-theme /usr/share/grub/themes/\n"
-        "fi\n\n"
+        "fi\n"
         "if [ -f ~/git/ghostwm-dotfiles/etc/default/grub ]; then\n"
         "    [ -f /etc/default/grub ] && sudo cp /etc/default/grub /etc/default/grub.bak\n"
         "    sudo cp ~/git/ghostwm-dotfiles/etc/default/grub /etc/default/grub\n"
-        "fi\n\n"
-        "sudo grub-mkconfig -o /boot/grub/grub.cfg\n\n"
+        "fi\n"
+        "sudo grub-mkconfig -o /boot/grub/grub.cfg\n"
         "mkdir -p ~/.config\n"
         "[ -f ~/.config/xdg-desktop-portal-termfilechooser/config ] && cp ~/.config/xdg-desktop-portal-termfilechooser/config ~/.config/xdg-desktop-portal-termfilechooser/config.bak\n"
         "[ -f ~/.config/yazi/yazi-wrapper.sh ] && cp ~/.config/yazi/yazi-wrapper.sh ~/.config/yazi/yazi-wrapper.sh.bak\n"
@@ -218,23 +240,23 @@ int main() {
         "if [ -f ~/git/ghostwm-dotfiles/.xinitrc ]; then\n"
         "    [ -f ~/.xinitrc ] && cp ~/.xinitrc ~/.xinitrc.bak\n"
         "    cp ~/git/ghostwm-dotfiles/.xinitrc ~/.xinitrc\n"
-        "fi\n\n"
+        "fi\n"
         "chsh -s $(which zsh) $USER\n"
-        "sudo chsh -s $(which zsh) root\n\n"
+        "sudo chsh -s $(which zsh) root\n"
         "if [ -d ~/.zsh/plugins/zsh-autosuggestions ]; then\n"
         "    cp -r ~/.zsh/plugins/zsh-autosuggestions ~/.zsh/plugins/zsh-autosuggestions.bak\n"
         "    rm -rf ~/.zsh/plugins/zsh-autosuggestions\n"
         "fi\n"
-        "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/plugins/zsh-autosuggestions\n\n"
+        "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/plugins/zsh-autosuggestions\n"
         "if [ -d ~/.zsh/plugins/zsh-syntax-highlighting ]; then\n"
         "    cp -r ~/.zsh/plugins/zsh-syntax-highlighting ~/.zsh/plugins/zsh-syntax-highlighting.bak\n"
         "    rm -rf ~/.zsh/plugins/zsh-syntax-highlighting\n"
         "fi\n"
-        "git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh/plugins/zsh-syntax-highlighting\n\n"
+        "git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh/plugins/zsh-syntax-highlighting\n"
         "systemctl --user enable --now pipewire.service\n"
         "systemctl --user enable --now pipewire-pulse.service\n"
-        "systemctl --user enable --now wireplumber.service",
-        repo_url, pkgs
+        "systemctl --user enable --now wireplumber.service\n",
+        repo_url, pkgs_native, pkgs_foreign, pkgs_foreign
     );
 
     char install_path[1024];
