@@ -201,6 +201,8 @@ int main() {
         "mkdir -p ~/git\n"
         "git clone %s ~/git/arch-dotfiles\n"
         "git clone https://github.com/gh0st-8221/ghostwm ~/git/ghostwm\n"
+        "git clone https://github.com/gh0st-8221/gboot ~/git/gboot\n"
+        "git clone https://github.com/gh0st-8221/ginit ~/git/ginit\n"
         "sudo wget -O /usr/bin/xscreencopy https://github.com/gh0st-8221/xscreencopy/raw/refs/heads/main/xscreencopy\n"
         "sudo chmod +x /usr/bin/xscreencopy\n"
         "git clone https://aur.archlinux.org/xdg-desktop-portal-termfilechooser-git.git ~/git/xdg-desktop-portal-termfilechooser-git\n"
