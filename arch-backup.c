@@ -136,6 +136,15 @@ int main() {
         run_cmd(cp_args);
     }
 
+    const char *chromium_policy_src = "/etc/chromium/policies/managed/catppuccin.json";
+    if (file_exists(chromium_policy_src)) {
+        char policy_dst_dir[1024];
+        snprintf(policy_dst_dir, sizeof(policy_dst_dir), "%s/etc/chromium/policies/managed", tmp_base);
+        create_dirs(policy_dst_dir);
+        char *cp_args[] = {"sudo", "cp", "-a", (char*)chromium_policy_src, policy_dst_dir, NULL};
+        run_cmd(cp_args);
+    }
+
     const char *grub_theme_src = "/usr/share/grub/themes/catppuccin-mocha-grub-theme";
     if (file_exists(grub_theme_src)) {
         char theme_dst[1024];
@@ -231,6 +240,12 @@ int main() {
         "    sudo cp ~/git/arch-dotfiles/etc/default/grub /etc/default/grub\n"
         "fi\n"
         "sudo grub-mkconfig -o /boot/grub/grub.cfg\n"
+        "if [ -f ~/git/arch-dotfiles/etc/chromium/policies/managed/catppuccin.json ]; then\n"
+        "    sudo mkdir -p /etc/chromium/policies/managed\n"
+        "    [ -f /etc/chromium/policies/managed/catppuccin.json ] && sudo cp /etc/chromium/policies/managed/catppuccin.json /etc/chromium/policies/managed/catppuccin.json.bak\n"
+        "    sudo cp ~/git/arch-dotfiles/etc/chromium/policies/managed/catppuccin.json /etc/chromium/policies/managed/catppuccin.json\n"
+        "    sudo chmod 644 /etc/chromium/policies/managed/catppuccin.json\n"
+        "fi\n"
         "mkdir -p ~/.config\n"
         "[ -f ~/.config/xdg-desktop-portal-termfilechooser/config ] && cp ~/.config/xdg-desktop-portal-termfilechooser/config ~/.config/xdg-desktop-portal-termfilechooser/config.bak\n"
         "[ -f ~/.config/yazi/yazi-wrapper.sh ] && cp ~/.config/yazi/yazi-wrapper.sh ~/.config/yazi/yazi-wrapper.sh.bak\n"
